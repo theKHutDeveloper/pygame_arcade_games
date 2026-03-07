@@ -2,7 +2,14 @@ import pygame
 
 from ecs.world import World
 from snake.config import SCREEN_WIDTH, SCREEN_HEIGHT, FPS
-from snake.systems import RenderGridSystem, RenderSnakeSystem, SnakeMovementSystem
+from snake.systems import (
+    RenderGridSystem,
+    RenderSnakeSystem,
+    SnakeMovementSystem,
+    FoodSpawnSystem,
+    FoodEatingSystem,
+    RenderFoodSystem,
+)
 from snake.spawn import spawn_snake
 
 
@@ -18,9 +25,12 @@ def main():
     spawn_snake(world)
 
     world.add_system(SnakeMovementSystem())
-    world.add_system(RenderGridSystem(screen))
-    world.add_system(RenderSnakeSystem(screen))
+    world.add_system(FoodEatingSystem())
+    world.add_system(FoodSpawnSystem())
 
+    world.add_system(RenderGridSystem(screen))
+    world.add_system(RenderFoodSystem(screen))
+    world.add_system(RenderSnakeSystem(screen))
     running = True
 
     while running:

@@ -1,7 +1,8 @@
 import pygame
 
+import random
 from ecs.system import System
-from snake.components import GridPosition, SnakeHead, SnakeBody, Direction
+from snake.components import GridPosition, SnakeHead, SnakeBody, Direction, Food
 from snake.config import GRID_WIDTH, GRID_HEIGHT, CELL_SIZE
 
 
@@ -72,3 +73,48 @@ class SnakeMovementSystem(System):
         # move body segments
         for i, (_, pos) in enumerate(body_segments):
             pos.x, pos.y = previous_positions[i]
+
+
+class FoodSpawnSystem(System):
+    def update(self, world, dt, events):
+        # check if food already exists
+        foods = list(world.get_entities_with(Food, GridPosition))
+
+        if foods:
+            return
+
+        # spawn new food
+        entity = world.create_entity()
+
+        x = random.randint(0, GRID_WIDTH - 1)
+        y = random.randint(0, GRID_HEIGHT - 1)
+
+        world.add_component(entity, Food())
+        world.add_component(entity, GridPosition(x, y))
+
+
+class RenderFoodSystem(System):
+    def __init__(self, screen):
+        self.screen = screen
+
+    def update(self, world, dt, events):
+        for entity, (food, pos) in world.get_entities_with(Food, GridPosition):
+            rect = pygame.Rect(
+                pos.x * CELL_SIZE, pos.y * CELL_SIZE, CELL_SIZE, CELL_SIZE
+            )
+            pygame.draw.rect(self.screen, (220, 50, 50), rect)
+
+
+class FoodEatingSystem(System):
+    def update(self, world, dt, events):
+        heads = list(world.get_entities_with(SnakeHead, GridPosition))
+        foods = list(world.get_entities_with(Food, GridPosition))
+
+        if not heads or not foods:
+            return
+
+        head_entity, (head, head_pos) = heads[0]
+
+        for food_entity, (food, food_pos) in foods:
+            if head_pos.x == food_pos.x and head_pos.y == food_pos.y:
+                world.remove_entity(food_entity)

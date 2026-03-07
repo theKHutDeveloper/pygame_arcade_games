@@ -26,3 +26,8 @@ class SnakeBody:
 @dataclass
 class Food:
     pass
+
+
+@dataclass
+class Grow:
+    amount: int = 1
