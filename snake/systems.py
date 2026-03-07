@@ -93,17 +93,27 @@ class SnakeMovementSystem(System):
 
 class FoodSpawnSystem(System):
     def update(self, world, dt, events):
-        # check if food already exists
         foods = list(world.get_entities_with(Food, GridPosition))
 
         if foods:
             return
 
-        # spawn new food
-        entity = world.create_entity()
+        # collect all occupied grid positions
+        occupied = set()
 
-        x = random.randint(0, GRID_WIDTH - 1)
-        y = random.randint(0, GRID_HEIGHT - 1)
+        for entity, (pos,) in world.get_entities_with(GridPosition):
+            occupied.add((pos.x, pos.y))
+
+        # find a free position
+        while True:
+            x = random.randint(0, GRID_WIDTH - 1)
+            y = random.randint(0, GRID_HEIGHT - 1)
+
+            if (x, y) not in occupied:
+                break
+
+        # spawn food
+        entity = world.create_entity()
 
         world.add_component(entity, Food())
         world.add_component(entity, GridPosition(x, y))
