@@ -2,7 +2,7 @@ import pygame
 
 from ecs.world import World
 from snake.config import SCREEN_WIDTH, SCREEN_HEIGHT, FPS
-from snake.systems import RenderGridSystem, RenderSnakeSystem
+from snake.systems import RenderGridSystem, RenderSnakeSystem, SnakeMovementSystem
 from snake.spawn import spawn_snake
 
 
@@ -17,6 +17,7 @@ def main():
 
     spawn_snake(world)
 
+    world.add_system(SnakeMovementSystem())
     world.add_system(RenderGridSystem(screen))
     world.add_system(RenderSnakeSystem(screen))
 
