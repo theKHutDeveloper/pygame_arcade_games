@@ -169,3 +169,41 @@ class SnakeSelfCollisionSystem(System):
                 print("Game Over: Hit yourself")
                 world.running = False
                 return
+
+
+class SnakeInputSystem(System):
+    def update(self, world, dt, events):
+        heads = list(world.get_entities_with(SnakeHead, Direction))
+
+        if not heads:
+            return
+
+        head_entity, (head, direction) = heads[0]
+
+        for event in events:
+            if event.type != pygame.KEYDOWN:
+                continue
+
+            # UP
+            if event.key in (pygame.K_UP, pygame.K_w):
+                if direction.y != 1:
+                    direction.x = 0
+                    direction.y = -1
+
+            # DOWN
+            elif event.key in (pygame.K_DOWN, pygame.K_s):
+                if direction.y != -1:
+                    direction.x = 0
+                    direction.y = 1
+
+            # LEFT
+            elif event.key in (pygame.K_LEFT, pygame.K_a):
+                if direction.x != 1:
+                    direction.x = -1
+                    direction.y = 0
+
+            # RIGHT
+            elif event.key in (pygame.K_RIGHT, pygame.K_d):
+                if direction.x != -1:
+                    direction.x = 1
+                    direction.y = 0
