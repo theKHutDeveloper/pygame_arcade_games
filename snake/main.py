@@ -9,6 +9,7 @@ from snake.systems import (
     FoodSpawnSystem,
     FoodEatingSystem,
     RenderFoodSystem,
+    SnakeWallCollisionSystem,
 )
 from snake.spawn import spawn_snake
 
@@ -25,22 +26,23 @@ def main():
     spawn_snake(world)
 
     world.add_system(SnakeMovementSystem())
+    world.add_system(SnakeWallCollisionSystem())
     world.add_system(FoodEatingSystem())
     world.add_system(FoodSpawnSystem())
 
     world.add_system(RenderGridSystem(screen))
     world.add_system(RenderFoodSystem(screen))
     world.add_system(RenderSnakeSystem(screen))
-    running = True
+    _ = world.running
 
-    while running:
+    while world.running:
 
         dt = clock.tick(FPS) / 1000.0
         events = pygame.event.get()
 
         for event in events:
             if event.type == pygame.QUIT:
-                running = False
+                world.running = False
 
         screen.fill((30, 30, 30))
 

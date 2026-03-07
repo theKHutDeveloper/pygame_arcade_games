@@ -2,7 +2,7 @@ import pygame
 
 import random
 from ecs.system import System
-from snake.components import GridPosition, SnakeHead, SnakeBody, Direction, Food
+from snake.components import GridPosition, SnakeHead, SnakeBody, Direction, Food, Grow
 from snake.config import GRID_WIDTH, GRID_HEIGHT, CELL_SIZE
 
 
@@ -51,10 +51,11 @@ class SnakeMovementSystem(System):
 
         head_entity, (head, head_pos, direction) = head_data[0]
 
-        # collect body segments
+        body_entities = []
         body_segments = []
 
         for entity, (body, pos) in world.get_entities_with(SnakeBody, GridPosition):
+            body_entities.append(entity)
             body_segments.append((body.order, pos))
 
         # sort body segments so they follow correctly
@@ -70,9 +71,24 @@ class SnakeMovementSystem(System):
         head_pos.x += direction.x
         head_pos.y += direction.y
 
-        # move body segments
+        # move body
         for i, (_, pos) in enumerate(body_segments):
             pos.x, pos.y = previous_positions[i]
+
+        # check for grow component
+        grows = list(world.get_entities_with(Grow))
+
+        for entity, (grow,) in grows:
+            if entity == head_entity:
+                # new body position is last previous position
+                x, y = previous_positions[-1]
+                new_body = world.create_entity()
+
+                world.add_component(new_body, SnakeBody(order=len(body_segments)))
+                world.add_component(new_body, GridPosition(x, y))
+
+                # remove grow component
+                world.components[Grow].pop(head_entity, None)
 
 
 class FoodSpawnSystem(System):
@@ -117,4 +133,22 @@ class FoodEatingSystem(System):
 
         for food_entity, (food, food_pos) in foods:
             if head_pos.x == food_pos.x and head_pos.y == food_pos.y:
+                # remove the food
                 world.remove_entity(food_entity)
+
+                # tell the snake to grow
+                world.add_component(head_entity, Grow(1))
+
+
+class SnakeWallCollisionSystem(System):
+    def update(self, world, dt, events):
+        heads = list(world.get_entities_with(SnakeHead, GridPosition))
+
+        if not heads:
+            return
+
+        head_entity, (head, pos) = heads[0]
+
+        if pos.x < 0 or pos.x >= GRID_WIDTH or pos.y < 0 or pos.y >= GRID_HEIGHT:
+            print("Game Over: Hit wall")
+            world.running = False
