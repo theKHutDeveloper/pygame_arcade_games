@@ -2,7 +2,8 @@ import pygame
 
 from ecs.world import World
 from snake.config import SCREEN_WIDTH, SCREEN_HEIGHT, FPS
-from snake.systems import RenderGridSystem
+from snake.systems import RenderGridSystem, RenderSnakeSystem
+from snake.spawn import spawn_snake
 
 
 def main():
@@ -13,7 +14,11 @@ def main():
     clock = pygame.time.Clock()
 
     world = World()
+
+    spawn_snake(world)
+
     world.add_system(RenderGridSystem(screen))
+    world.add_system(RenderSnakeSystem(screen))
 
     running = True
 
