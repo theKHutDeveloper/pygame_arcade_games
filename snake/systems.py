@@ -292,3 +292,44 @@ class RestartSystem(System):
 
                 # respawn snake
                 spawn_snake(world)
+
+
+class DebugRenderSystem(System):
+    def __init__(self, screen, clock):
+        self.screen = screen
+        self.clock = clock
+        self.font = pygame.font.SysFont(None, 24)
+
+    def update(self, world, dt, events):
+        fps = int(self.clock.get_fps())
+
+        # count entities
+        entity_ids = set()
+        for comp_store in world.components.values():
+            entity_ids.update(comp_store.keys())
+
+        entity_count = len(entity_ids)
+
+        component_types = len(world.components)
+        system_count = len(world.systems)
+
+        # snake length
+        snake_length = 1
+        bodies = list(world.get_entities_with(SnakeBody))
+        snake_length += len(bodies)
+
+        lines = [
+            f"FPS: {fps}",
+            f"Entities: {entity_count}",
+            f"Components: {component_types}",
+            f"Systems: {system_count}",
+            f"Snake Length: {snake_length}",
+        ]
+
+        y = 10
+
+        for line in lines:
+            text = self.font.render(line, True, (200, 200, 200))
+            rect = text.get_rect(topright=(SCREEN_WIDTH - 10, y))
+            self.screen.blit(text, rect)
+            y += 20

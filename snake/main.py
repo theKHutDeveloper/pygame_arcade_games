@@ -15,6 +15,7 @@ from snake.systems import (
     RestartSystem,
     RenderScoreSystem,
     RenderGameStateSystem,
+    DebugRenderSystem,
 )
 from snake.spawn import spawn_snake
 from snake.components import Score, GameState
@@ -47,6 +48,8 @@ def main():
     world.add_system(RenderSnakeSystem(screen))
     world.add_system(RenderScoreSystem(screen))
     world.add_system(RenderGameStateSystem(screen))
+
+    world.add_system(DebugRenderSystem(screen, clock))
 
     world.add_system(RestartSystem())
 
