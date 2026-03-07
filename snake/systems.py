@@ -152,3 +152,20 @@ class SnakeWallCollisionSystem(System):
         if pos.x < 0 or pos.x >= GRID_WIDTH or pos.y < 0 or pos.y >= GRID_HEIGHT:
             print("Game Over: Hit wall")
             world.running = False
+
+
+class SnakeSelfCollisionSystem(System):
+    def update(self, world, dt, events):
+        heads = list(world.get_entities_with(SnakeHead, GridPosition))
+        bodies = list(world.get_entities_with(SnakeBody, GridPosition))
+
+        if not heads:
+            return
+
+        head_entity, (head, head_pos) = heads[0]
+
+        for entity, (body, body_pos) in bodies:
+            if head_pos.x == body_pos.x and head_pos.y == body_pos.y:
+                print("Game Over: Hit yourself")
+                world.running = False
+                return

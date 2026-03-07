@@ -10,6 +10,7 @@ from snake.systems import (
     FoodEatingSystem,
     RenderFoodSystem,
     SnakeWallCollisionSystem,
+    SnakeSelfCollisionSystem,
 )
 from snake.spawn import spawn_snake
 
@@ -27,6 +28,7 @@ def main():
 
     world.add_system(SnakeMovementSystem())
     world.add_system(SnakeWallCollisionSystem())
+    world.add_system(SnakeSelfCollisionSystem())
     world.add_system(FoodEatingSystem())
     world.add_system(FoodSpawnSystem())
 
