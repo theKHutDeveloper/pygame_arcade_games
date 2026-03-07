@@ -11,6 +11,7 @@ from snake.components import (
     Grow,
     Score,
     GameState,
+    DebugSettings,
 )
 from snake.config import GRID_WIDTH, GRID_HEIGHT, CELL_SIZE, SCREEN_WIDTH, SCREEN_HEIGHT
 from snake.spawn import spawn_snake
@@ -289,6 +290,7 @@ class RestartSystem(System):
                 game_entity = world.create_entity()
                 world.add_component(game_entity, Score(0))
                 world.add_component(game_entity, GameState("playing"))
+                world.add_component(game_entity, DebugSettings(True))
 
                 # respawn snake
                 spawn_snake(world)
@@ -301,6 +303,16 @@ class DebugRenderSystem(System):
         self.font = pygame.font.SysFont(None, 24)
 
     def update(self, world, dt, events):
+        settings = list(world.get_entities_with(DebugSettings))
+
+        if not settings:
+            return
+
+        entity, (debug,) = settings[0]
+
+        if not debug.enabled:
+            return
+
         fps = int(self.clock.get_fps())
 
         # count entities
@@ -333,3 +345,18 @@ class DebugRenderSystem(System):
             rect = text.get_rect(topright=(SCREEN_WIDTH - 10, y))
             self.screen.blit(text, rect)
             y += 20
+
+
+class DebugToggleSystem(System):
+    def update(self, world, dt, events):
+        settings = list(world.get_entities_with(DebugSettings))
+
+        if not settings:
+            return
+
+        entity, (debug,) = settings[0]
+
+        for event in events:
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_F1:
+                debug.enabled = not debug.enabled
+                print("F1 pressed, debug:", debug.enabled)

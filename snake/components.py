@@ -41,3 +41,8 @@ class Score:
 @dataclass
 class GameState:
     state: str = "playing"
+
+
+@dataclass
+class DebugSettings:
+    enabled: bool = True
