@@ -31,3 +31,13 @@ class Food:
 @dataclass
 class Grow:
     amount: int = 1
+
+
+@dataclass
+class Score:
+    value: int = 0
+
+
+@dataclass
+class GameState:
+    state: str = "playing"

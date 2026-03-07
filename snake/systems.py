@@ -2,8 +2,18 @@ import pygame
 
 import random
 from ecs.system import System
-from snake.components import GridPosition, SnakeHead, SnakeBody, Direction, Food, Grow
-from snake.config import GRID_WIDTH, GRID_HEIGHT, CELL_SIZE
+from snake.components import (
+    GridPosition,
+    SnakeHead,
+    SnakeBody,
+    Direction,
+    Food,
+    Grow,
+    Score,
+    GameState,
+)
+from snake.config import GRID_WIDTH, GRID_HEIGHT, CELL_SIZE, SCREEN_WIDTH, SCREEN_HEIGHT
+from snake.spawn import spawn_snake
 
 
 class RenderGridSystem(System):
@@ -149,6 +159,10 @@ class FoodEatingSystem(System):
                 # tell the snake to grow
                 world.add_component(head_entity, Grow(1))
 
+                # increase score
+                for entity, (score,) in world.get_entities_with(Score):
+                    score.value += 10
+
 
 class SnakeWallCollisionSystem(System):
     def update(self, world, dt, events):
@@ -160,8 +174,8 @@ class SnakeWallCollisionSystem(System):
         head_entity, (head, pos) = heads[0]
 
         if pos.x < 0 or pos.x >= GRID_WIDTH or pos.y < 0 or pos.y >= GRID_HEIGHT:
-            print("Game Over: Hit wall")
-            world.running = False
+            for entity, (state,) in world.get_entities_with(GameState):
+                state.state = "game_over"
 
 
 class SnakeSelfCollisionSystem(System):
@@ -176,8 +190,8 @@ class SnakeSelfCollisionSystem(System):
 
         for entity, (body, body_pos) in bodies:
             if head_pos.x == body_pos.x and head_pos.y == body_pos.y:
-                print("Game Over: Hit yourself")
-                world.running = False
+                for entity, (state,) in world.get_entities_with(GameState):
+                    state.state = "game_over"
                 return
 
 
@@ -217,3 +231,64 @@ class SnakeInputSystem(System):
                 if direction.x != -1:
                     direction.x = 1
                     direction.y = 0
+
+
+class RenderGameStateSystem(System):
+    def __init__(self, screen):
+        self.screen = screen
+        self.font = pygame.font.SysFont(None, 48)
+
+    def update(self, world, dt, events):
+        states = list(world.get_entities_with(GameState))
+
+        if not states:
+            return
+
+        entity, (state,) = states[0]
+
+        if state.state != "game_over":
+            return
+
+        text = self.font.render("GAME OVER - Press R", True, (255, 80, 80))
+        rect = text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+        self.screen.blit(text, rect)
+
+
+class RenderScoreSystem(System):
+    def __init__(self, screen):
+        self.screen = screen
+        self.font = pygame.font.SysFont(None, 32)
+
+    def update(self, world, dt, events):
+        for entity, (score,) in world.get_entities_with(Score):
+            text = self.font.render(f"Score: {score.value}", True, (240, 240, 240))
+            self.screen.blit(text, (10, 10))
+
+
+class RestartSystem(System):
+    def update(self, world, dt, events):
+        states = list(world.get_entities_with(GameState))
+
+        if not states:
+            return
+
+        entity, (state,) = states[0]
+
+        if state.state != "game_over":
+            return
+
+        for event in events:
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
+                # clear all entries
+                world.components.clear()
+
+                # reset entity counter
+                world.next_entity_id = 1
+
+                # recreate game state
+                game_entity = world.create_entity()
+                world.add_component(game_entity, Score(0))
+                world.add_component(game_entity, GameState("playing"))
+
+                # respawn snake
+                spawn_snake(world)

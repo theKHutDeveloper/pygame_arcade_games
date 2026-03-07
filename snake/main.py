@@ -12,8 +12,12 @@ from snake.systems import (
     SnakeWallCollisionSystem,
     SnakeSelfCollisionSystem,
     SnakeInputSystem,
+    RestartSystem,
+    RenderScoreSystem,
+    RenderGameStateSystem,
 )
 from snake.spawn import spawn_snake
+from snake.components import Score, GameState
 
 
 def main():
@@ -25,6 +29,10 @@ def main():
 
     world = World()
 
+    # game state entity
+    game_entity = world.create_entity()
+    world.add_component(game_entity, Score(0))
+    world.add_component(game_entity, GameState("playing"))
     spawn_snake(world)
 
     world.add_system(SnakeInputSystem())
@@ -37,6 +45,11 @@ def main():
     world.add_system(RenderGridSystem(screen))
     world.add_system(RenderFoodSystem(screen))
     world.add_system(RenderSnakeSystem(screen))
+    world.add_system(RenderScoreSystem(screen))
+    world.add_system(RenderGameStateSystem(screen))
+
+    world.add_system(RestartSystem())
+
     _ = world.running
 
     while world.running:
