@@ -2,7 +2,13 @@ import pygame
 
 from ecs.world import World
 from tetris.config import SCREEN_WIDTH, SCREEN_HEIGHT, BACKGROUND_COLOR
-from tetris.systems import RenderSystem, GravitySystem, InputSystem, CollisionSystem
+from tetris.systems import (
+    RenderSystem,
+    GravitySystem,
+    InputSystem,
+    CollisionSystem,
+    LineClearSystem,
+)
 from tetris.spawn import SpawnSystem
 
 
@@ -16,6 +22,7 @@ def main():
 
     world = World()
 
+    world.add_system(LineClearSystem())
     world.add_system(SpawnSystem())
     world.add_system(InputSystem())
     world.add_system(GravitySystem())

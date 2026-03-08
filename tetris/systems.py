@@ -267,3 +267,39 @@ class CollisionSystem(System):
         for entity, (pos, active, falling) in active_blocks:
             world.components[ActivePiece].pop(entity, None)
             world.components[Falling].pop(entity, None)
+
+
+class LineClearSystem(System):
+    """
+    Detect and clear completed lines
+    """
+
+    def update(self, world, dt, events):
+        # do not clear lines while a piece is still falling
+        active_piece = list(world.get_entities_with(ActivePiece))
+        if active_piece:
+            return
+
+        # build row map
+        rows = {y: [] for y in range(GRID_HEIGHT)}
+
+        for entity, (block, pos) in world.get_entities_with(Block, GridPosition):
+            rows[pos.y].append(entity)
+
+        # find full rows
+        full_rows = [y for y, entities in rows.items() if len(entities) == GRID_WIDTH]
+
+        if not full_rows:
+            return
+
+        # remove blocks in full rows
+        for y in full_rows:
+            for entity in rows[y]:
+                world.remove_entity(entity)
+
+        # drop blocks above cleared rows
+        for entity, (block, pos) in world.get_entities_with(Block, GridPosition):
+            drop_amount = sum(1 for row in full_rows if pos.y < row)
+
+            if drop_amount > 0:
+                pos.y += drop_amount
