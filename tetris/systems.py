@@ -1,7 +1,7 @@
 import pygame
 
 from ecs.system import System
-from tetris.components import Block, GridPosition
+from tetris.components import Block, GridPosition, ActivePiece, Falling
 from tetris.config import (
     GRID_WIDTH,
     GRID_HEIGHT,
@@ -62,3 +62,26 @@ class RenderSystem(System):
                 rect,
                 1,
             )
+
+
+class GravitySystem(System):
+    """
+    Moves the active piece downward over time.
+    """
+
+    def __init__(self, fall_interval=0.5):
+        self.fall_interval = fall_interval
+        self.timer = 0
+
+    def update(self, world, dt, events):
+        self.timer += dt
+
+        if self.timer < self.fall_interval:
+            return
+
+        self.timer = 0
+
+        for entity, (pos, active, falling) in world.get_entities_with(
+            GridPosition, ActivePiece, Falling
+        ):
+            pos.y += 1
