@@ -164,3 +164,50 @@ class InputSystem(System):
             pos.y = pivot_y + dy
 
             rot.value = next_rotation
+
+
+class CollisionSystem(System):
+    """
+    Detects floor/block collisions and locks the active piece
+    """
+
+    def update(self, world, dt, events):
+        active_blocks = list(
+            world.get_entities_with(GridPosition, ActivePiece, Falling)
+        )
+
+        if not active_blocks:
+            return
+
+        # build a set of occupied board cells (excluding active piece)
+        occupied = set()
+
+        for entity, (block, pos) in world.get_entities_with(Block, GridPosition):
+            if entity not in [e for e, _ in active_blocks]:
+                occupied.add((pos.x, pos.y))
+
+        collision = False
+
+        for entity, (pos, active, falling) in active_blocks:
+            next_y = pos.y + 1
+
+            # floor collision
+            if next_y >= GRID_HEIGHT:
+                collision = True
+                break
+
+            # block collision
+            if (pos.x, next_y) in occupied:
+                collision = True
+                break
+
+        if collision:
+            self.lock_piece(world, active_blocks)
+
+    def lock_piece(self, world, active_blocks):
+        """
+        Convert active blocks into static board blocks
+        """
+        for entity, (pos, active, falling) in active_blocks:
+            world.components[ActivePiece].pop(entity, None)
+            world.components[Falling].pop(entity, None)
