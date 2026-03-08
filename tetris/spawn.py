@@ -9,6 +9,7 @@ from tetris.components import (
     Falling,
     Rotation,
     PieceType,
+    GameState,
 )
 
 from tetris.pieces import PIECES
@@ -24,6 +25,14 @@ class SpawnSystem(System):
         self.piece_counter = 0
 
     def update(self, world, dt, events):
+        # check if game is over, if so, stop
+        states = list(world.get_entities_with(GameState))
+
+        if states:
+            _, (state,) = states[0]
+            if state.state != "playing":
+                return
+
         # Check if an active piece already exists
         active_blocks = list(world.get_entities_with(ActivePiece))
 

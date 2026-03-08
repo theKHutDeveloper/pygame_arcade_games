@@ -64,3 +64,8 @@ class PieceType:
 @dataclass
 class Score:
     value: int = 0
+
+
+@dataclass
+class GameState:
+    state: str

@@ -9,6 +9,7 @@ from tetris.components import (
     Rotation,
     PieceType,
     Score,
+    GameState,
 )
 from tetris.pieces import PIECES
 from tetris.config import (
@@ -83,6 +84,14 @@ class GravitySystem(System):
         self.timer = 0
 
     def update(self, world, dt, events):
+        # check if game state is not playing
+        states = list(world.get_entities_with(GameState))
+
+        if states:
+            _, (state,) = states[0]
+            if state.state != "playing":
+                return
+
         self.timer += dt
 
         if self.timer < self.fall_interval:
@@ -102,6 +111,14 @@ class InputSystem(System):
     """
 
     def update(self, world, dt, events):
+        # check if game state is not playing
+        states = list(world.get_entities_with(GameState))
+
+        if states:
+            _, (state,) = states[0]
+            if state.state != "playing":
+                return
+
         for event in events:
             if event.type != pygame.KEYDOWN:
                 continue
@@ -229,6 +246,14 @@ class CollisionSystem(System):
     """
 
     def update(self, world, dt, events):
+        # check if game state is not playing
+        states = list(world.get_entities_with(GameState))
+
+        if states:
+            _, (state,) = states[0]
+            if state.state != "playing":
+                return
+
         active_blocks = list(
             world.get_entities_with(GridPosition, ActivePiece, Falling)
         )
@@ -276,6 +301,14 @@ class LineClearSystem(System):
     """
 
     def update(self, world, dt, events):
+        # check if game state is not playing
+        states = list(world.get_entities_with(GameState))
+
+        if states:
+            _, (state,) = states[0]
+            if state.state != "playing":
+                return
+
         # do not clear lines while a piece is still falling
         active_piece = list(world.get_entities_with(ActivePiece))
         if active_piece:
@@ -349,9 +382,8 @@ class GameOverSystem(System):
 
         for cell in spawn_cells:
             if cell in occupied:
-                print("GAME OVER")
-                world.running = False
-                return
+                for entity, (state,) in world.get_entities_with(GameState):
+                    state.state = "game_over"
 
 
 class RenderScoreSystem(System):
@@ -363,3 +395,68 @@ class RenderScoreSystem(System):
         for entity, (score,) in world.get_entities_with(Score):
             text = self.font.render(f"Score: {score.value}", True, (240, 240, 240))
             self.screen.blit(text, (10, 10))
+
+
+class RestartSystem(System):
+    """
+    Restart the game when R is pressed after game over
+    """
+
+    def update(self, world, dt, events):
+        states = list(world.get_entities_with(GameState))
+
+        if not states:
+            return
+
+        entity, (state,) = states[0]
+
+        if state.state != "game_over":
+            return
+
+        for event in events:
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
+                # clear ECS world
+                world.components.clear()
+
+                # reset entity IDs
+                world.next_entity_id = 1
+
+                # recreate base entities
+                game_entity = world.create_entity()
+
+                world.add_component(game_entity, Score(0))
+                world.add_component(game_entity, GameState("playing"))
+
+
+class GameOverRenderSystem(System):
+    """
+    Render the game over screen
+    """
+
+    def __init__(self, screen):
+        self.screen = screen
+        self.font = pygame.font.SysFont(None, 60)
+        self.small_font = pygame.font.SysFont(None, 36)
+
+    def update(self, world, dt, events):
+        states = list(world.get_entities_with(GameState))
+
+        if not states:
+            return
+
+        _, (state,) = states[0]
+
+        if state.state != "game_over":
+            return
+
+        width = self.screen.get_width()
+        height = self.screen.get_height()
+
+        text = self.font.render("GAME OVER", True, (255, 60, 60))
+        restart = self.small_font.render("Press R to Restart", True, (255, 255, 255))
+
+        rect = text.get_rect(center=(width // 2, height // 2 - 40))
+        rect2 = restart.get_rect(center=(width // 2, height // 2 + 20))
+
+        self.screen.blit(text, rect)
+        self.screen.blit(restart, rect2)

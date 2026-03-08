@@ -10,9 +10,11 @@ from tetris.systems import (
     LineClearSystem,
     GameOverSystem,
     RenderScoreSystem,
+    GameOverRenderSystem,
+    RestartSystem,
 )
 from tetris.spawn import SpawnSystem
-from tetris.components import Score
+from tetris.components import Score, GameState
 
 
 def main():
@@ -25,17 +27,21 @@ def main():
 
     world = World()
 
-    score_entity = world.create_entity()
-    world.add_component(score_entity, Score())
+    game_entity = world.create_entity()
+
+    world.add_component(game_entity, Score(0))
+    world.add_component(game_entity, GameState("playing"))
 
     world.add_system(LineClearSystem())
     world.add_system(GameOverSystem())
+    world.add_system(RestartSystem())
     world.add_system(SpawnSystem())
     world.add_system(InputSystem())
     world.add_system(GravitySystem())
     world.add_system(CollisionSystem())
     world.add_system(RenderSystem(screen))
     world.add_system(RenderScoreSystem(screen))
+    world.add_system(GameOverRenderSystem(screen))
 
     while world.running:
         dt = clock.tick(60) / 1000
