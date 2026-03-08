@@ -1,7 +1,15 @@
 import pygame
 
 from ecs.system import System
-from tetris.components import Block, GridPosition, ActivePiece, Falling
+from tetris.components import (
+    Block,
+    GridPosition,
+    ActivePiece,
+    Falling,
+    Rotation,
+    PieceType,
+)
+from tetris.pieces import PIECES
 from tetris.config import (
     GRID_WIDTH,
     GRID_HEIGHT,
@@ -106,6 +114,9 @@ class InputSystem(System):
             elif event.key == pygame.K_DOWN:
                 self.move(world, dy=1)
 
+            elif event.key == pygame.K_UP:
+                self.rotate(world)
+
     def move(self, world, dx=0, dy=0):
         """
         Move all blocks belonging to the active piece.
@@ -116,3 +127,40 @@ class InputSystem(System):
         ):
             pos.x += dx
             pos.y += dy
+
+    def rotate(self, world):
+        """
+        Rotate the active tetromino.
+        """
+
+        active_blocks = list(
+            world.get_entities_with(
+                GridPosition, ActivePiece, Falling, Rotation, PieceType
+            )
+        )
+
+        if not active_blocks:
+            return
+
+        # Use the first block as the pivot
+        pivot_entity, (pivot_pos, active, falling, rotation, piece_type) = (
+            active_blocks[0]
+        )
+
+        piece_data = PIECES[piece_type.name]
+        rotations = piece_data["rotations"]
+
+        next_rotation = (rotation.value + 1) % len(rotations)
+        offsets = rotations[next_rotation]
+
+        pivot_x = pivot_pos.x
+        pivot_y = pivot_pos.y
+
+        # Update positions of all blocks
+        for i, (entity, (pos, active, falling, rot, ptype)) in enumerate(active_blocks):
+            dx, dy = offsets[i]
+
+            pos.x = pivot_x + dx
+            pos.y = pivot_y + dy
+
+            rot.value = next_rotation
