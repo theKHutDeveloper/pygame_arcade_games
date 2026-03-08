@@ -2,6 +2,7 @@ import pygame
 
 from ecs.world import World
 from tetris.config import SCREEN_WIDTH, SCREEN_HEIGHT, BACKGROUND_COLOR
+from tetris.systems import RenderSystem
 
 
 def main():
@@ -14,6 +15,8 @@ def main():
 
     world = World()
 
+    world.add_system(RenderSystem(screen))
+
     while world.running:
         dt = clock.tick(60) / 1000
 
@@ -22,9 +25,9 @@ def main():
             if event.type == pygame.QUIT:
                 world.running = False
 
-        world.update(dt, events)
-
         screen.fill(BACKGROUND_COLOR)
+
+        world.update(dt, events)
 
         pygame.display.flip()
 
