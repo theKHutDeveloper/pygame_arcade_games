@@ -119,12 +119,34 @@ class InputSystem(System):
 
     def move(self, world, dx=0, dy=0):
         """
-        Move all blocks belonging to the active piece.
+        Move all blocks belonging to the active piece if the movement is valid.
         """
+        active_blocks = list(
+            world.get_entities_with(GridPosition, ActivePiece, Falling)
+        )
 
-        for entity, (pos, active, falling) in world.get_entities_with(
-            GridPosition, ActivePiece, Falling
-        ):
+        if not active_blocks:
+            return
+
+        active_entities = {entity for entity, _ in active_blocks}
+        occupied = self.get_occupied_cells(world, active_entities)
+
+        # check if move is valid
+        for entity, (pos, active, falling) in active_blocks:
+            new_x = pos.x + dx
+            new_y = pos.y + dy
+
+            if new_x < 0 or new_x >= GRID_WIDTH:
+                return
+
+            if new_y < 0 or new_y >= GRID_HEIGHT:
+                return
+
+            if (new_x, new_y) in occupied:
+                return
+
+        # apply movement
+        for entity, (pos, active, falling) in active_blocks:
             pos.x += dx
             pos.y += dy
 
@@ -142,7 +164,7 @@ class InputSystem(System):
         if not active_blocks:
             return
 
-        # Use the first block as the pivot
+        # Use first block as pivot
         pivot_entity, (pivot_pos, active, falling, rotation, piece_type) = (
             active_blocks[0]
         )
@@ -156,14 +178,48 @@ class InputSystem(System):
         pivot_x = pivot_pos.x
         pivot_y = pivot_pos.y
 
-        # Update positions of all blocks
+        active_entities = {entity for entity, _ in active_blocks}
+        occupied = self.get_occupied_cells(world, active_entities)
+
+        new_positions = []
+
         for i, (entity, (pos, active, falling, rot, ptype)) in enumerate(active_blocks):
             dx, dy = offsets[i]
 
-            pos.x = pivot_x + dx
-            pos.y = pivot_y + dy
+            new_x = pivot_x + dx
+            new_y = pivot_y + dy
 
+            if new_x < 0 or new_x >= GRID_WIDTH:
+                return
+
+            if new_y < 0 or new_y >= GRID_HEIGHT:
+                return
+
+            if (new_x, new_y) in occupied:
+                return
+
+            new_positions.append((pos, new_x, new_y))
+
+        # Apply rotation
+        for pos, new_x, new_y in new_positions:
+            pos.x = new_x
+            pos.y = new_y
+
+        # Update rotation state
+        for entity, (pos, active, falling, rot, ptype) in active_blocks:
             rot.value = next_rotation
+
+    def get_occupied_cells(self, world, active_entities):
+        """
+        Return occupied board cells excluding the active piece
+        """
+        occupied = set()
+
+        for entity, (block, pos) in world.get_entities_with(Block, GridPosition):
+            if entity not in active_entities:
+                occupied.add((pos.x, pos.y))
+
+        return occupied
 
 
 class CollisionSystem(System):
