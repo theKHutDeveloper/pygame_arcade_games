@@ -307,7 +307,6 @@ class LineClearSystem(System):
 
         for entity, (score,) in world.get_entities_with(Score):
             score.value += points
-            print("Score:", score.value)
 
         # remove blocks in full rows
         for y in full_rows:
@@ -353,3 +352,14 @@ class GameOverSystem(System):
                 print("GAME OVER")
                 world.running = False
                 return
+
+
+class RenderScoreSystem(System):
+    def __init__(self, screen):
+        self.screen = screen
+        self.font = pygame.font.SysFont(None, 32)
+
+    def update(self, world, dt, events):
+        for entity, (score,) in world.get_entities_with(Score):
+            text = self.font.render(f"Score: {score.value}", True, (240, 240, 240))
+            self.screen.blit(text, (10, 10))

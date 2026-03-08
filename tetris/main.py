@@ -9,6 +9,7 @@ from tetris.systems import (
     CollisionSystem,
     LineClearSystem,
     GameOverSystem,
+    RenderScoreSystem,
 )
 from tetris.spawn import SpawnSystem
 from tetris.components import Score
@@ -34,6 +35,7 @@ def main():
     world.add_system(GravitySystem())
     world.add_system(CollisionSystem())
     world.add_system(RenderSystem(screen))
+    world.add_system(RenderScoreSystem(screen))
 
     while world.running:
         dt = clock.tick(60) / 1000
