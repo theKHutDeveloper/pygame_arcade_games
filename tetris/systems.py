@@ -85,3 +85,34 @@ class GravitySystem(System):
             GridPosition, ActivePiece, Falling
         ):
             pos.y += 1
+
+
+class InputSystem(System):
+    """
+    Handles player input for moving the active piece.
+    """
+
+    def update(self, world, dt, events):
+        for event in events:
+            if event.type != pygame.KEYDOWN:
+                continue
+
+            if event.key == pygame.K_LEFT:
+                self.move(world, dx=-1)
+
+            elif event.key == pygame.K_RIGHT:
+                self.move(world, dx=1)
+
+            elif event.key == pygame.K_DOWN:
+                self.move(world, dy=1)
+
+    def move(self, world, dx=0, dy=0):
+        """
+        Move all blocks belonging to the active piece.
+        """
+
+        for entity, (pos, active, falling) in world.get_entities_with(
+            GridPosition, ActivePiece, Falling
+        ):
+            pos.x += dx
+            pos.y += dy
