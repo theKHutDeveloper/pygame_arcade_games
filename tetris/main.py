@@ -8,8 +8,10 @@ from tetris.systems import (
     InputSystem,
     CollisionSystem,
     LineClearSystem,
+    GameOverSystem,
 )
 from tetris.spawn import SpawnSystem
+from tetris.components import Score
 
 
 def main():
@@ -22,7 +24,11 @@ def main():
 
     world = World()
 
+    score_entity = world.create_entity()
+    world.add_component(score_entity, Score())
+
     world.add_system(LineClearSystem())
+    world.add_system(GameOverSystem())
     world.add_system(SpawnSystem())
     world.add_system(InputSystem())
     world.add_system(GravitySystem())

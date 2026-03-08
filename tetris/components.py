@@ -59,3 +59,8 @@ class PieceType:
     """
 
     name: str
+
+
+@dataclass
+class Score:
+    value: int = 0

@@ -8,6 +8,7 @@ from tetris.components import (
     Falling,
     Rotation,
     PieceType,
+    Score,
 )
 from tetris.pieces import PIECES
 from tetris.config import (
@@ -271,7 +272,7 @@ class CollisionSystem(System):
 
 class LineClearSystem(System):
     """
-    Detect and clear completed lines
+    Detect and clear completed lines, and award score
     """
 
     def update(self, world, dt, events):
@@ -292,6 +293,22 @@ class LineClearSystem(System):
         if not full_rows:
             return
 
+        # score calculation
+        lines_cleared = len(full_rows)
+
+        score_table = {
+            1: 100,
+            2: 300,
+            3: 500,
+            4: 800,
+        }
+
+        points = score_table.get(lines_cleared, 0)
+
+        for entity, (score,) in world.get_entities_with(Score):
+            score.value += points
+            print("Score:", score.value)
+
         # remove blocks in full rows
         for y in full_rows:
             for entity in rows[y]:
@@ -303,3 +320,36 @@ class LineClearSystem(System):
 
             if drop_amount > 0:
                 pos.y += drop_amount
+
+
+class GameOverSystem(System):
+    """
+    Ends the game if the spawn area is blocked
+    """
+
+    def update(self, world, dt, events):
+        active_piece = list(world.get_entities_with(ActivePiece))
+
+        # only check when a new piece is about to spawn
+        if active_piece:
+            return
+
+        occupied = set()
+
+        for entity, (block, pos) in world.get_entities_with(Block, GridPosition):
+            occupied.add((pos.x, pos.y))
+
+        spawn_x = GRID_WIDTH // 2
+
+        spawn_cells = [
+            (spawn_x, 0),
+            (spawn_x - 1, 0),
+            (spawn_x + 1, 0),
+            (spawn_x, 1),
+        ]
+
+        for cell in spawn_cells:
+            if cell in occupied:
+                print("GAME OVER")
+                world.running = False
+                return
