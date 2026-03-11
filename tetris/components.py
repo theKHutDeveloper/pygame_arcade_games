@@ -69,3 +69,8 @@ class Score:
 @dataclass
 class GameState:
     state: str
+
+
+@dataclass
+class NextPiece:
+    name: str

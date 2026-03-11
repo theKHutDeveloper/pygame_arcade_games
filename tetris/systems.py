@@ -10,6 +10,7 @@ from tetris.components import (
     PieceType,
     Score,
     GameState,
+    NextPiece,
 )
 from tetris.pieces import PIECES
 from tetris.config import (
@@ -17,6 +18,9 @@ from tetris.config import (
     GRID_HEIGHT,
     CELL_SIZE,
     GRID_COLOR,
+    SCREEN_WIDTH,
+    PANEL_COLOR,
+    TEXT_COLOR,
 )
 
 
@@ -460,3 +464,46 @@ class GameOverRenderSystem(System):
 
         self.screen.blit(text, rect)
         self.screen.blit(restart, rect2)
+
+
+class NextPieceRenderSystem(System):
+    """
+    Render the upcoming next piece in the side panel.
+    """
+
+    def __init__(self, screen):
+        self.screen = screen
+        self.title_font = pygame.font.SysFont(None, 32)
+
+    def update(self, world, dt, events):
+        panel_x = GRID_WIDTH * CELL_SIZE
+        panel_width = SCREEN_WIDTH - panel_x
+
+        panel_rect = pygame.Rect(panel_x, 0, panel_width, GRID_HEIGHT * CELL_SIZE)
+        pygame.draw.rect(self.screen, PANEL_COLOR, panel_rect)
+
+        title = self.title_font.render("Next", True, TEXT_COLOR)
+        self.screen.blit(title, (panel_x + 20, 70))
+
+        next_piece_entities = list(world.get_entities_with(NextPiece))
+        if not next_piece_entities:
+            return
+
+        _, (next_piece,) = next_piece_entities[0]
+
+        piece_data = PIECES[next_piece.name]
+        color = piece_data["color"]
+        offsets = piece_data["rotations"][0]
+
+        preview_origin_x = panel_x + 60
+        preview_origin_y = 130
+
+        for dx, dy in offsets:
+            rect = pygame.Rect(
+                preview_origin_x + dx * CELL_SIZE,
+                preview_origin_y + dy * CELL_SIZE,
+                CELL_SIZE,
+                CELL_SIZE,
+            )
+            pygame.draw.rect(self.screen, color, rect)
+            pygame.draw.rect(self.screen, (0, 0, 0), rect, 1)

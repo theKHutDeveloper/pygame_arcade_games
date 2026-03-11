@@ -12,6 +12,7 @@ from tetris.systems import (
     RenderScoreSystem,
     GameOverRenderSystem,
     RestartSystem,
+    NextPieceRenderSystem,
 )
 from tetris.spawn import SpawnSystem
 from tetris.components import Score, GameState
@@ -41,6 +42,7 @@ def main():
     world.add_system(CollisionSystem())
     world.add_system(RenderSystem(screen))
     world.add_system(RenderScoreSystem(screen))
+    world.add_system(NextPieceRenderSystem(screen))
     world.add_system(GameOverRenderSystem(screen))
 
     while world.running:

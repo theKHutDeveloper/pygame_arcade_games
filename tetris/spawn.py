@@ -10,6 +10,7 @@ from tetris.components import (
     Rotation,
     PieceType,
     GameState,
+    NextPiece,
 )
 
 from tetris.pieces import PIECES
@@ -19,6 +20,7 @@ from tetris.config import GRID_WIDTH
 class SpawnSystem(System):
     """
     Spawns a new tetromino when no active piece exists.
+    Also maintains the upcoming next piece preview.
     """
 
     def __init__(self):
@@ -39,14 +41,28 @@ class SpawnSystem(System):
         if active_blocks:
             return
 
-        self.spawn_piece(world)
+        next_piece_entities = list(world.get_entities_with(NextPiece))
 
-    def spawn_piece(self, world):
+        # If no NextPiece exists yet, create one first
+        if not next_piece_entities:
+            preview_entity = world.create_entity()
+            world.add_component(preview_entity, NextPiece(self.random_piece_name()))
+            next_piece_entities = list(world.get_entities_with(NextPiece))
+
+        preview_entity, (next_piece,) = next_piece_entities[0]
+
+        piece_name_to_spawn = next_piece.name
+
+        # Roll and store the next preview piece
+        next_piece.name = self.random_piece_name()
+
+        self.spawn_piece(world, piece_name_to_spawn)
+
+    def spawn_piece(self, world, piece_name):
         """
         Create a new tetromino using ECS entities.
         """
 
-        piece_name = random.choice(list(PIECES.keys()))
         piece_data = PIECES[piece_name]
 
         rotations = piece_data["rotations"]
@@ -64,8 +80,10 @@ class SpawnSystem(System):
 
             world.add_component(entity, GridPosition(spawn_x + dx, spawn_y + dy))
             world.add_component(entity, Block(color))
-
             world.add_component(entity, ActivePiece(piece_id))
             world.add_component(entity, Falling())
             world.add_component(entity, Rotation(0))
             world.add_component(entity, PieceType(piece_name))
+
+    def random_piece_name(self):
+        return random.choice(list(PIECES.keys()))
