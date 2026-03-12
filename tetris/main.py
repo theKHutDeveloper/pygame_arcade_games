@@ -16,7 +16,7 @@ from tetris.systems import (
     GhostPieceSystem,
 )
 from tetris.spawn import SpawnSystem
-from tetris.components import Score, GameState
+from tetris.components import Score, GameState, GhostSettings
 
 
 def main():
@@ -33,6 +33,7 @@ def main():
 
     world.add_component(game_entity, Score(0))
     world.add_component(game_entity, GameState("playing"))
+    world.add_component(game_entity, GhostSettings(True))
 
     world.add_system(LineClearSystem())
     world.add_system(GameOverSystem())

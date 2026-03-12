@@ -12,6 +12,7 @@ from tetris.components import (
     GameState,
     NextPiece,
     GhostBlock,
+    GhostSettings,
 )
 from tetris.pieces import PIECES
 from tetris.config import (
@@ -147,6 +148,8 @@ class InputSystem(System):
                 self.rotate(world)
             elif event.key == pygame.K_SPACE:
                 self.hard_drop(world)
+            elif event.key == pygame.K_g:
+                self.toggle_ghost(world)
 
     def move(self, world, dx=0, dy=0):
         """
@@ -286,6 +289,20 @@ class InputSystem(System):
 
         return occupied
 
+    def toggle_ghost(self, world):
+        """
+        Toggle ghost piece visibility.
+        """
+
+        settings = list(world.get_entities_with(GhostSettings))
+
+        if not settings:
+            return
+
+        entity, (ghost_settings,) = settings[0]
+
+        ghost_settings.enabled = not ghost_settings.enabled
+
 
 class CollisionSystem(System):
     """
@@ -348,11 +365,20 @@ class GhostPieceSystem(System):
     """
 
     def update(self, world, dt, events):
-        # Remove existing ghost blocks
+
+        # Always remove existing ghost blocks first
         ghost_entities = list(world.get_entities_with(GhostBlock))
 
         for entity, _ in ghost_entities:
             world.remove_entity(entity)
+
+        # Check ghost settings
+        settings = list(world.get_entities_with(GhostSettings))
+
+        if settings:
+            _, (ghost_settings,) = settings[0]
+            if not ghost_settings.enabled:
+                return
 
         active_blocks = list(world.get_entities_with(GridPosition, ActivePiece))
 
@@ -361,14 +387,12 @@ class GhostPieceSystem(System):
 
         active_entities = {entity for entity, _ in active_blocks}
 
-        # Build occupied cells excluding active piece
         occupied = set()
 
         for entity, (block, pos) in world.get_entities_with(Block, GridPosition):
             if entity not in active_entities:
                 occupied.add((pos.x, pos.y))
 
-        # Copy active positions
         ghost_positions = [(pos.x, pos.y) for _, (pos, _) in active_blocks]
 
         # Drop until collision

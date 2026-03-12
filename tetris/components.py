@@ -83,3 +83,8 @@ class GhostBlock:
     """
 
     pass
+
+
+@dataclass
+class GhostSettings:
+    enabled: bool = True
