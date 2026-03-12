@@ -595,6 +595,7 @@ class NextPieceRenderSystem(System):
     def __init__(self, screen):
         self.screen = screen
         self.title_font = pygame.font.SysFont(None, 32)
+        self.text_font = pygame.font.SysFont(None, 24)
 
     def update(self, world, dt, events):
         panel_x = GRID_WIDTH * CELL_SIZE
@@ -628,3 +629,21 @@ class NextPieceRenderSystem(System):
             )
             pygame.draw.rect(self.screen, color, rect)
             pygame.draw.rect(self.screen, (0, 0, 0), rect, 1)
+
+        # --- CONTROLS SECTION ---
+        controls_title = self.title_font.render("Controls", True, TEXT_COLOR)
+        self.screen.blit(controls_title, (panel_x + 20, 300))
+
+        controls = [
+            "Left / Right = Move",
+            "Down = Soft Drop",
+            "Up = Rotate",
+            "Space = Hard Drop",
+            "G = Toggle Ghost",
+        ]
+
+        start_y = 340
+
+        for i, text in enumerate(controls):
+            line = self.text_font.render(text, True, TEXT_COLOR)
+            self.screen.blit(line, (panel_x + 20, start_y + i * 28))
