@@ -74,3 +74,12 @@ class GameState:
 @dataclass
 class NextPiece:
     name: str
+
+
+@dataclass
+class GhostBlock:
+    """
+    Marker for ghost piece blocks.
+    """
+
+    pass

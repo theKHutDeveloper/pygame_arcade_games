@@ -11,6 +11,7 @@ from tetris.components import (
     Score,
     GameState,
     NextPiece,
+    GhostBlock,
 )
 from tetris.pieces import PIECES
 from tetris.config import (
@@ -62,6 +63,18 @@ class RenderSystem(System):
         Draw all block entities.
         """
 
+        # draw ghost blocks first
+        for entity, (ghost_pos, ghost) in world.get_entities_with(
+            GridPosition, GhostBlock
+        ):
+            px = ghost_pos.x * CELL_SIZE
+            py = ghost_pos.y * CELL_SIZE
+
+            rect = pygame.Rect(px, py, CELL_SIZE, CELL_SIZE)
+
+            pygame.draw.rect(self.screen, (120, 120, 120), rect, 2)
+
+        # draw real blocks
         for entity, (block, pos) in world.get_entities_with(Block, GridPosition):
             px = pos.x * CELL_SIZE
             py = pos.y * CELL_SIZE
@@ -69,13 +82,7 @@ class RenderSystem(System):
             rect = pygame.Rect(px, py, CELL_SIZE, CELL_SIZE)
 
             pygame.draw.rect(self.screen, block.color, rect)
-
-            pygame.draw.rect(
-                self.screen,
-                (0, 0, 0),
-                rect,
-                1,
-            )
+            pygame.draw.rect(self.screen, (0, 0, 0), rect, 1)
 
 
 class GravitySystem(System):
@@ -333,6 +340,60 @@ class CollisionSystem(System):
         for entity, (pos, active, falling) in active_blocks:
             world.components[ActivePiece].pop(entity, None)
             world.components[Falling].pop(entity, None)
+
+
+class GhostPieceSystem(System):
+    """
+    Creates a ghost projection of where the active piece will land.
+    """
+
+    def update(self, world, dt, events):
+        # Remove existing ghost blocks
+        ghost_entities = list(world.get_entities_with(GhostBlock))
+
+        for entity, _ in ghost_entities:
+            world.remove_entity(entity)
+
+        active_blocks = list(world.get_entities_with(GridPosition, ActivePiece))
+
+        if not active_blocks:
+            return
+
+        active_entities = {entity for entity, _ in active_blocks}
+
+        # Build occupied cells excluding active piece
+        occupied = set()
+
+        for entity, (block, pos) in world.get_entities_with(Block, GridPosition):
+            if entity not in active_entities:
+                occupied.add((pos.x, pos.y))
+
+        # Copy active positions
+        ghost_positions = [(pos.x, pos.y) for _, (pos, _) in active_blocks]
+
+        # Drop until collision
+        while True:
+
+            next_positions = [(x, y + 1) for x, y in ghost_positions]
+
+            collision = False
+
+            for x, y in next_positions:
+                if y >= GRID_HEIGHT or (x, y) in occupied:
+                    collision = True
+                    break
+
+            if collision:
+                break
+
+            ghost_positions = next_positions
+
+        # Create ghost entities
+        for x, y in ghost_positions:
+            entity = world.create_entity()
+
+            world.add_component(entity, GridPosition(x, y))
+            world.add_component(entity, GhostBlock())
 
 
 class LineClearSystem(System):
