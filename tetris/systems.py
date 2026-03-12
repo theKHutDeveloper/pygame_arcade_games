@@ -138,6 +138,8 @@ class InputSystem(System):
 
             elif event.key == pygame.K_UP:
                 self.rotate(world)
+            elif event.key == pygame.K_SPACE:
+                self.hard_drop(world)
 
     def move(self, world, dx=0, dy=0):
         """
@@ -230,6 +232,40 @@ class InputSystem(System):
         # Update rotation state
         for entity, (pos, active, falling, rot, ptype) in active_blocks:
             rot.value = next_rotation
+
+    def hard_drop(self, world):
+        """
+        Instantly drop the active piece to the lowest valid position.
+        """
+        while True:
+            active_blocks = list(
+                world.get_entities_with(GridPosition, ActivePiece, Falling)
+            )
+
+            if not active_blocks:
+                return
+
+            active_entities = {entity for entity, _ in active_blocks}
+            occupied = self.get_occupied_cells(world, active_entities)
+
+            can_move = True
+
+            for entity, (pos, active, falling) in active_blocks:
+                new_y = pos.y + 1
+
+                if new_y >= GRID_HEIGHT:
+                    can_move = False
+                    break
+
+                if (pos.x, new_y) in occupied:
+                    can_move = False
+                    break
+
+            if not can_move:
+                return
+
+            for entity, (pos, active, falling) in active_blocks:
+                pos.y += 1
 
     def get_occupied_cells(self, world, active_entities):
         """
