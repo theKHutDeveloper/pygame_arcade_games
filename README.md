@@ -304,7 +304,7 @@ This repository implements a minimal ECS engine to demonstrate these concepts cl
 ```
 
 ## Running a Game
-```
+
 #### Clone the repository:
 
 - git clone https://github.com/YOUR_USERNAME/pygame_arcade_games.git
@@ -324,7 +324,9 @@ This repository implements a minimal ECS engine to demonstrate these concepts cl
 
 #### Run a game:
 
-- python -m snake.main
+- Snake: ````python -m snake.main````
+- Tetris: ````python -m tetris.main````
+- Space Invaders: ````python -m space_invaders.main````
 
 #### Development Setup
 
@@ -343,7 +345,7 @@ Run the linter:
 Run pre-commit checks:
 
 - pre-commit run --all-files
-```
+
 
 ## Future Improvements
 ```
