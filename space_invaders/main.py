@@ -10,6 +10,7 @@ from space_invaders.components import (
     Player,
     Velocity,
     FireCooldown,
+    Collider,
 )
 from space_invaders.config import (
     SCREEN_WIDTH,
@@ -49,24 +50,13 @@ def create_player(world):
 
     world.add_component(player, Player())
 
-    world.add_component(
-        player,
-        Position(
-            PLAYER_START_X,
-            PLAYER_START_Y,
-        ),
-    )
+    world.add_component(player, Position(PLAYER_START_X, PLAYER_START_Y))
 
     world.add_component(player, Velocity(0, 0))
 
-    world.add_component(
-        player,
-        Sprite(
-            PLAYER_WIDTH,
-            PLAYER_HEIGHT,
-            PLAYER_COLOUR,
-        ),
-    )
+    world.add_component(player, Sprite(PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_COLOUR))
+
+    world.add_component(player, Collider(PLAYER_WIDTH, PLAYER_HEIGHT))
 
     world.add_component(player, FireCooldown(0, 0.35))
 
