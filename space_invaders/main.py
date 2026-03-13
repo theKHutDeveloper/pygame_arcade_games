@@ -1,7 +1,7 @@
 import pygame
 
 from ecs.world import World
-from space_invaders.components import GameState, Score, Lives
+from space_invaders.components import GameState, Score, Lives, Position, Sprite, Player
 from space_invaders.config import (
     SCREEN_WIDTH,
     SCREEN_HEIGHT,
@@ -9,7 +9,13 @@ from space_invaders.config import (
     TITLE,
     BACKGROUND_COLOUR,
     PLAYER_LIVES,
+    PLAYER_START_X,
+    PLAYER_START_Y,
+    PLAYER_WIDTH,
+    PLAYER_HEIGHT,
+    PLAYER_COLOUR,
 )
+from space_invaders.systems.render_system import RenderSystem
 
 
 def create_initial_entities(world):
@@ -21,6 +27,27 @@ def create_initial_entities(world):
     world.add_component(state_entity, GameState("playing"))
 
 
+def create_player(world):
+    player = world.create_entity()
+
+    world.add_component(player, Player())
+    world.add_component(
+        player,
+        Position(
+            PLAYER_START_X,
+            PLAYER_START_Y,
+        ),
+    )
+    world.add_component(
+        player,
+        Sprite(
+            PLAYER_WIDTH,
+            PLAYER_HEIGHT,
+            PLAYER_COLOUR,
+        ),
+    )
+
+
 def main():
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -29,6 +56,9 @@ def main():
 
     world = World()
     create_initial_entities(world)
+    create_player(world)
+
+    world.add_system(RenderSystem(screen))
 
     while world.running:
         dt = clock.tick(FPS) / 1000
@@ -38,9 +68,9 @@ def main():
             if event.type == pygame.QUIT:
                 world.running = False
 
+        screen.fill(BACKGROUND_COLOUR)
         world.update(dt, events)
 
-        screen.fill(BACKGROUND_COLOUR)
         pygame.display.flip()
 
     pygame.quit()
