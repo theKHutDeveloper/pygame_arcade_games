@@ -1,7 +1,15 @@
 import pygame
 
 from ecs.world import World
-from space_invaders.components import GameState, Score, Lives, Position, Sprite, Player
+from space_invaders.components import (
+    GameState,
+    Score,
+    Lives,
+    Position,
+    Sprite,
+    Player,
+    Velocity,
+)
 from space_invaders.config import (
     SCREEN_WIDTH,
     SCREEN_HEIGHT,
@@ -16,6 +24,8 @@ from space_invaders.config import (
     PLAYER_COLOUR,
 )
 from space_invaders.systems.render_system import RenderSystem
+from space_invaders.systems.player_input_system import PlayerInputSystem
+from space_invaders.systems.movement_system import MovementSystem
 
 
 def create_initial_entities(world):
@@ -31,6 +41,7 @@ def create_player(world):
     player = world.create_entity()
 
     world.add_component(player, Player())
+
     world.add_component(
         player,
         Position(
@@ -38,6 +49,9 @@ def create_player(world):
             PLAYER_START_Y,
         ),
     )
+
+    world.add_component(player, Velocity(0, 0))
+
     world.add_component(
         player,
         Sprite(
@@ -58,6 +72,8 @@ def main():
     create_initial_entities(world)
     create_player(world)
 
+    world.add_system(PlayerInputSystem())
+    world.add_system(MovementSystem())
     world.add_system(RenderSystem(screen))
 
     while world.running:
