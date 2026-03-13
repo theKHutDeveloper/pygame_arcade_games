@@ -13,6 +13,7 @@ from tetris.components import (
     NextPiece,
     GhostBlock,
     GhostSettings,
+    PieceBag,
 )
 from tetris.pieces import PIECES
 from tetris.config import (
@@ -551,6 +552,7 @@ class RestartSystem(System):
 
                 world.add_component(game_entity, Score(0))
                 world.add_component(game_entity, GameState("playing"))
+                world.add_component(game_entity, PieceBag([]))
 
 
 class GameOverRenderSystem(System):

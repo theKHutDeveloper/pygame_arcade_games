@@ -88,3 +88,8 @@ class GhostBlock:
 @dataclass
 class GhostSettings:
     enabled: bool = True
+
+
+@dataclass
+class PieceBag:
+    pieces: list[str]
