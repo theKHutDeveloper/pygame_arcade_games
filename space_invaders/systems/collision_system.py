@@ -68,7 +68,6 @@ class CollisionSystem(System):
 
                     if lives:
                         lives.value -= 1
-                        print("PLAYER HIT! - Lives: ", lives.value)
 
                     if lives and lives.value <= 0:
                         states = list(world.get_entities_with(GameState))
