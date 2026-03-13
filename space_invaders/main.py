@@ -9,6 +9,7 @@ from space_invaders.components import (
     Sprite,
     Player,
     Velocity,
+    FireCooldown,
 )
 from space_invaders.config import (
     SCREEN_WIDTH,
@@ -26,6 +27,7 @@ from space_invaders.config import (
 from space_invaders.systems.render_system import RenderSystem
 from space_invaders.systems.player_input_system import PlayerInputSystem
 from space_invaders.systems.movement_system import MovementSystem
+from space_invaders.systems.bullet_spawn_system import BulletSpawnSystem
 
 
 def create_initial_entities(world):
@@ -61,6 +63,8 @@ def create_player(world):
         ),
     )
 
+    world.add_component(player, FireCooldown(0, 0.35))
+
 
 def main():
     pygame.init()
@@ -73,6 +77,7 @@ def main():
     create_player(world)
 
     world.add_system(PlayerInputSystem())
+    world.add_system(BulletSpawnSystem())
     world.add_system(MovementSystem())
     world.add_system(RenderSystem(screen))
 
