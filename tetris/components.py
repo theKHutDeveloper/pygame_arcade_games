@@ -93,3 +93,13 @@ class GhostSettings:
 @dataclass
 class PieceBag:
     pieces: list[str]
+
+
+@dataclass
+class LinesCleared:
+    value: int = 0
+
+
+@dataclass
+class Level:
+    value: int = 1

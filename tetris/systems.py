@@ -14,6 +14,8 @@ from tetris.components import (
     GhostBlock,
     GhostSettings,
     PieceBag,
+    LinesCleared,
+    Level,
 )
 from tetris.pieces import PIECES
 from tetris.config import (
@@ -92,8 +94,7 @@ class GravitySystem(System):
     Moves the active piece downward over time.
     """
 
-    def __init__(self, fall_interval=0.5):
-        self.fall_interval = fall_interval
+    def __init__(self):
         self.timer = 0
 
     def update(self, world, dt, events):
@@ -105,9 +106,18 @@ class GravitySystem(System):
             if state.state != "playing":
                 return
 
+        level_entities = list(world.get_entities_with(Level))
+        level = 1
+
+        if level_entities:
+            _, (level_comp,) = level_entities[0]
+            level = level_comp.value
+
+        fall_interval = max(0.08, 0.5 - (level - 1) * 0.04)
+
         self.timer += dt
 
-        if self.timer < self.fall_interval:
+        if self.timer < fall_interval:
             return
 
         self.timer = 0
@@ -455,6 +465,9 @@ class LineClearSystem(System):
         # score calculation
         lines_cleared = len(full_rows)
 
+        for entity, (lines,) in world.get_entities_with(LinesCleared):
+            lines.value += lines_cleared
+
         score_table = {
             1: 100,
             2: 300,
@@ -522,6 +535,10 @@ class RenderScoreSystem(System):
             text = self.font.render(f"Score: {score.value}", True, (240, 240, 240))
             self.screen.blit(text, (10, 10))
 
+        for entity, (level,) in world.get_entities_with(Level):
+            text = self.font.render(f"Level: {level.value}", True, (240, 240, 240))
+            self.screen.blit(text, (10, 40))
+
 
 class RestartSystem(System):
     """
@@ -553,6 +570,9 @@ class RestartSystem(System):
                 world.add_component(game_entity, Score(0))
                 world.add_component(game_entity, GameState("playing"))
                 world.add_component(game_entity, PieceBag([]))
+                world.add_component(game_entity, GhostSettings(True))
+                world.add_component(game_entity, LinesCleared(0))
+                world.add_component(game_entity, Level(1))
 
 
 class GameOverRenderSystem(System):
@@ -649,3 +669,24 @@ class NextPieceRenderSystem(System):
         for i, text in enumerate(controls):
             line = self.text_font.render(text, True, TEXT_COLOR)
             self.screen.blit(line, (panel_x + 20, start_y + i * 28))
+
+
+class LevelSystem(System):
+    """
+    Updates level based on number of cleared lines.
+    """
+
+    def update(self, world, dt, events):
+        lines_entities = list(world.get_entities_with(LinesCleared))
+        level_entities = list(world.get_entities_with(Level))
+
+        if not lines_entities or not level_entities:
+            return
+
+        _, (lines,) = lines_entities[0]
+        _, (level,) = level_entities[0]
+
+        new_level = (lines.value // 10) + 1
+
+        if new_level != level.value:
+            level.value = new_level

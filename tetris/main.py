@@ -14,9 +14,17 @@ from tetris.systems import (
     RestartSystem,
     NextPieceRenderSystem,
     GhostPieceSystem,
+    LevelSystem,
 )
 from tetris.spawn import SpawnSystem
-from tetris.components import Score, GameState, GhostSettings, PieceBag
+from tetris.components import (
+    Score,
+    GameState,
+    GhostSettings,
+    PieceBag,
+    LinesCleared,
+    Level,
+)
 
 
 def main():
@@ -35,8 +43,11 @@ def main():
     world.add_component(game_entity, GameState("playing"))
     world.add_component(game_entity, GhostSettings(True))
     world.add_component(game_entity, PieceBag([]))
+    world.add_component(game_entity, LinesCleared(0))
+    world.add_component(game_entity, Level(1))
 
     world.add_system(LineClearSystem())
+    world.add_system(LevelSystem())
     world.add_system(GameOverSystem())
     world.add_system(RestartSystem())
     world.add_system(SpawnSystem())
