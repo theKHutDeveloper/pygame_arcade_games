@@ -31,6 +31,7 @@ from space_invaders.systems.bullet_spawn_system import BulletSpawnSystem
 from space_invaders.systems.player_bounds_system import PlayerBoundsSystem
 from space_invaders.systems.alien_spawn_system import AlienSpawnSystem
 from space_invaders.systems.alien_movement_system import AlienMovementSystem
+from space_invaders.systems.collision_system import CollisionSystem
 
 
 def create_initial_entities(world):
@@ -85,6 +86,7 @@ def main():
     world.add_system(AlienMovementSystem())
     world.add_system(MovementSystem())
     world.add_system(PlayerBoundsSystem())
+    world.add_system(CollisionSystem())
     world.add_system(RenderSystem(screen))
 
     while world.running:
